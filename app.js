@@ -34,7 +34,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // Middleware de manejo de errores
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3004;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
                   
