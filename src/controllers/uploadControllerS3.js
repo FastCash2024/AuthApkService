@@ -19,7 +19,7 @@ export const handleFileUpload = async (req, res) => {
 export const handleFileUploadMultiples = async (req, res) => {
   const { body, files } = req;
 
-  // console.log("req",body, files)
+  console.log("req",body.formData, files)
   
   try {
 
@@ -42,10 +42,11 @@ export const handleFileUploadMultiples = async (req, res) => {
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'Debe enviar al menos un archivo' });
     }
-    const formData = await body.formData
+    const formData = await JSON.parse(body.formData)
 
-    console.log("body", body)
-    console.log("formData", formData)
+
+console.log("formData:::", formData)
+console.log("formDataContacto", formData.contacto)
 
 
     formData.phoneNumber = contacto;
