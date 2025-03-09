@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import {handleFileUpload,handleFileUploadMultiples} from '../controllers/uploadControllerS3.js';
-import {getChatsUser, getFilterUsersApk, getFilterUsersApkFromWeb} from '../controllers/authApkController.js';
+import {getChatsUser, getFilterUsersApk, getFilterUsersApkRefresh, getFilterUsersApkFromWeb} from '../controllers/authApkController.js';
 
 const router = express.Router();
 
@@ -19,6 +19,7 @@ router.post('/register', upload.array('files', 3), handleFileUploadMultiples);  
 
 //Login APK
 router.get('/usersApk', getFilterUsersApk);
+router.get('/usersApkRefresh', getFilterUsersApkRefresh);
 router.get('/usersApkFromWeb', getFilterUsersApkFromWeb);
 router.get('/usersChat', getChatsUser);
 
