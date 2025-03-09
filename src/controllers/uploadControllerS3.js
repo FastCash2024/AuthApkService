@@ -18,6 +18,8 @@ export const handleFileUpload = async (req, res) => {
 // Controlador para manejar la carga de múltiples archivos
 export const handleFileUploadMultiples = async (req, res) => {
   const { body, files } = req;
+
+  // console.log("req",body, files)
   
   try {
 
@@ -40,7 +42,11 @@ export const handleFileUploadMultiples = async (req, res) => {
     if (!files || files.length === 0) {
       return res.status(400).json({ error: 'Debe enviar al menos un archivo' });
     }
-    const formData = await JSON.parse(body.formData)
+    const formData = await body.formData
+
+    console.log("body", body)
+    console.log("formData", formData)
+
 
     formData.phoneNumber = contacto;
     
@@ -61,7 +67,8 @@ export const handleFileUploadMultiples = async (req, res) => {
       data: { ...formData, applications: resultApplications }
     });
   } catch (error) {
-    return res.status(500).json({ "Error":error.message, });
+    console.log(error)
+    return res.status(500).json({ "Error":error, });
   }
 };
 
