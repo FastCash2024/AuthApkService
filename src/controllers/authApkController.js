@@ -257,27 +257,34 @@ export const getApplications = async (userData) => {
     
 
     const applications = await Application.find();
+    console.log("app",applications)
+    // if (userLoans.length === 0) {
+    //   return applications.map(app => {
+    //     const nivel1 = app.niveles.find(n => n.nivelDePrestamo == 1) || {};
+    //     return {
+    //       nombre: app.nombre,
+    //       icon: app.icon,
+    //       calificacion: app.calificacion,
+    //       prestamoMaximo: nivel1.valorPrestadoMasInteres || 0,
+    //       interesDiarioMaximo: nivel1.interesDiario || 0,
+    //       interesDiario: nivel1.interesDiario || 0,
+    //       interesTotal: nivel1.interesTotal || 0,
+    //       valorDepositoLiquido: nivel1.valorDepositoLiquido || 0,
+    //       valorExtencion: nivel1.valorExtencion || 0,
+    //       valorPrestado: nivel1.valorPrestadoMasInteres || 0,
+    //       valorPrestamoMenosInteres: nivel1.valorPrestamoMenosInteres || 0,
+    //       estadoDeNivel: "Disponible",
+    //       nivelDePrestamo: 1
+    //     };
+    //   });
+    // }
 
-    if (userLoans.length === 0) {
-      return applications.map(app => {
-        const nivel1 = app.niveles.find(n => n.nivelDePrestamo === 1) || {};
-        return {
-          nombre: app.nombre,
-          icon: app.icon,
-          calificacion: app.calificacion,
-          prestamoMaximo: nivel1.valorPrestadoMasInteres || 0,
-          interesDiarioMaximo: nivel1.interesDiario || 0,
-          interesDiario: nivel1.interesDiario || 0,
-          interesTotal: nivel1.interesTotal || 0,
-          valorDepositoLiquido: nivel1.valorDepositoLiquido || 0,
-          valorExtencion: nivel1.valorExtencion || 0,
-          valorPrestado: nivel1.valorPrestadoMasInteres || 0,
-          valorPrestamoMenosInteres: nivel1.valorPrestamoMenosInteres || 0,
-          estadoDeNivel: "Disponible",
-          nivelDePrestamo: 1
-        };
-      });
-    }
+
+
+
+
+
+
 
     return applications.map(app => {
       const nivelesOrdenados = app.niveles
