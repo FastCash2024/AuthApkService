@@ -247,10 +247,15 @@ export const getApplications = async (userData) => {
       throw new Error("Todos los campos (numeroDeTelefono, dni, nombreDelCliente) son obligatorios.");
     }
 
+
+const obj = { numeroDeTelefonoMovil: contacto,
+nombreDelCliente,
+dni}
+console.log("dataParaMatch",obj)
+
     const userLoans = await VerificationCollection.find({
       numeroDeTelefonoMovil: contacto,
       nombreDelCliente,
-      dni
     });
 
     console.log("user loans: ", userLoans);
@@ -323,7 +328,7 @@ export const getApplications = async (userData) => {
       const tieneCreditoNoPagadoEnEstaApp = userLoans.some(loan =>
         loan.nombreDelProducto === app.nombre && loan.estadoDeCredito.trim().toLowerCase() !== "pagado"
       );
-
+      console.log("creditos no pagados",tieneCreditoNoPagadoEnEstaApp)
       // Contar cuántos préstamos pagados tiene el usuario en esta app
       const prestamosPagados = userLoans.filter(loan =>
         loan.estadoDeCredito.trim().toLowerCase() === "pagado" && loan.nombreDelProducto === app.nombre
