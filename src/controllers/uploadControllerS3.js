@@ -19,17 +19,15 @@ export const handleFileUpload = async (req, res) => {
 export const handleFileUploadMultiples = async (req, res) => {
   const { body, files } = req;
 
-  console.log("req",body.formData, files)
-  
+  console.log("req", body.formData, files)
+
   try {
-
     const { contacto } = body;
-
     // Verificar que los archivos estén presentes
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
-    
+
     const fileUrls = [];
 
     // Subir cada archivo a S3
@@ -45,14 +43,14 @@ export const handleFileUploadMultiples = async (req, res) => {
     const formData = await JSON.parse(body.formData)
 
 
-console.log("formData:::", formData)
-console.log("formDataContacto", formData.contacto)
+    console.log("formData:::", formData)
+    console.log("formDataContacto", formData.contacto)
 
 
     formData.phoneNumber = contacto;
-    
+
     const resultApplications = await getApplications(formData);
-    
+
     // Crear un nuevo documento en la base de datos
     const newForm = new FormModel({
       formData: formData,// Datos del formulario
@@ -69,7 +67,7 @@ console.log("formDataContacto", formData.contacto)
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ "Error":error, });
+    return res.status(500).json({ "Error": error, });
   }
 };
 
@@ -119,7 +117,7 @@ export const verificarOTP = async (telefono, codigo) => {
   setTimeout(async () => {
     await SmsModel.deleteOne({ telefono, code: codigo });
   }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000);
-  
+
   return { success: true, message: "OTP válido." };
 
 };

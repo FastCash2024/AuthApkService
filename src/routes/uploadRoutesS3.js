@@ -15,6 +15,8 @@ const upload = multer({
 });
 // Rutas de S3
 router.post('/upload', upload.single('file'), handleFileUpload);
+
+//Registers APP
 router.post('/register', upload.array('files', 3), handleFileUploadMultiples);  // Permite hasta 10 archivos
 
 //Login APK
