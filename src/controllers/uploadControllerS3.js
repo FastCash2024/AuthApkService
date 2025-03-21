@@ -62,8 +62,7 @@ export const handleFileUploadMultiples = async (req, res) => {
 
     // Responder con las URLs de los archivos cargados
     return res.status(200).json({
-      message: 'Files uploaded successfully',
-      data: { ...formData, applications: resultApplications }
+      ...formData, applications: resultApplications
     });
   } catch (error) {
     console.log(error)
