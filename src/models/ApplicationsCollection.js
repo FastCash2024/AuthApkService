@@ -19,9 +19,6 @@ const tipoApplicationSchema = new mongoose.Schema({
   valorExtencion: {
     type: String,
   },
-  // categoria: {
-  //   type: String,
-  // },
   nivelDePrestamo: {
     type: String,
     required: true,

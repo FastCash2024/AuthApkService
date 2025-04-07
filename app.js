@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url'; // Asegúrate de importar fileURLToPath
 
 import uploadRoutesS3 from './src/routes/uploadRoutesS3.js';
+import cuentasBancariasRoutes from './src/routes/CuentasBancariasRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 //Auth APK Routes
 app.use('/api/authApk', uploadRoutesS3); // AuthAndSMS ---> LoginAPK
+app.use('/api/authApk/cuentasBancarias', cuentasBancariasRoutes); // AuthAndSMS ---> LoginAPK
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

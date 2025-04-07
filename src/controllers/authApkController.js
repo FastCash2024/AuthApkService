@@ -123,6 +123,7 @@ export const getFilterUsersApkRefresh = async (req, res) => {
     res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
   }
 };
+
 // Obtener todos los usuarios
 export const getFilterUsersApkFromWeb = async (req, res) => {
   console.log(req)
@@ -248,10 +249,12 @@ export const getApplications = async (userData) => {
     }
 
 
-const obj = { numeroDeTelefonoMovil: contacto,
-nombreDelCliente,
-dni}
-console.log("dataParaMatch",obj)
+    const obj = {
+      numeroDeTelefonoMovil: contacto,
+      nombreDelCliente,
+      dni
+    }
+    console.log("dataParaMatch", obj)
 
     const userLoans = await VerificationCollection.find({
       numeroDeTelefonoMovil: contacto,
@@ -259,16 +262,12 @@ console.log("dataParaMatch",obj)
     });
 
     console.log("user loans: ", userLoans);
-    
+
 
     const applications = await Application.find();
-    console.log("app",applications)
+    console.log("app", applications)
 
 
-
-
-
-    
     if (userLoans.length === 0) {
       return applications.map(app => {
         const nivel1 = app.niveles.find(n => n.nivelDePrestamo == 1) || {};
@@ -300,7 +299,7 @@ console.log("dataParaMatch",obj)
       const tieneCreditoNoPagadoEnEstaApp = userLoans.some(loan =>
         loan.nombreDelProducto === app.nombre && loan.estadoDeCredito.trim().toLowerCase() !== "pagado"
       );
-      console.log("creditos no pagados",tieneCreditoNoPagadoEnEstaApp)
+      console.log("creditos no pagados", tieneCreditoNoPagadoEnEstaApp)
       // Contar cuántos préstamos pagados tiene el usuario en esta app
       const prestamosPagados = userLoans.filter(loan =>
         loan.estadoDeCredito.trim().toLowerCase() === "pagado" && loan.nombreDelProducto === app.nombre
@@ -321,7 +320,7 @@ console.log("dataParaMatch",obj)
       const maximoNivelDisponible = Math.max(...nivelesOrdenados.map(n => Number(n.nivelDePrestamo)));
       // console.log("maximoNivelDisponible", maximoNivelDisponible);
 
-      
+
       const estadoDeNivel = tieneCreditoNoPagadoEnEstaApp
         ? "No disponible"
         : nivelSiguiente > maximoNivelDisponible
