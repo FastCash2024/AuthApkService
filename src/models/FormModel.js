@@ -13,6 +13,7 @@ const CuentasBancariasSchema = new mongoose.Schema({
   nombreBanco: String,
   claveBanco: String,
   numeroDeCuenta: String,
+  tipoDeCuenta: String,
   estadoDeCuenta: {
     type: String,
     enum: ['Activo', 'Bloqueado'],

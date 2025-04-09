@@ -24,7 +24,7 @@ export async function agregarCuentaBancaria(req, res) {
 
 export const actualizarCuentaBancaria = async (req, res) => {
     const { usuarioId, cuentaId } = req.params;
-    const { titular, nombreBanco, claveBanco, numeroDeCuenta, estadoDeCuenta } = req.body;
+    const { titular, nombreBanco, claveBanco, numeroDeCuenta, estadoDeCuenta, tipoDeCuenta } = req.body;
 
     try {
         const usuario = await FormModel.findById(usuarioId);
@@ -42,6 +42,8 @@ export const actualizarCuentaBancaria = async (req, res) => {
         if (claveBanco !== undefined) cuentaBancaria.claveBanco = claveBanco;
         if (numeroDeCuenta !== undefined) cuentaBancaria.numeroDeCuenta = numeroDeCuenta;
         if (estadoDeCuenta !== undefined) cuentaBancaria.estadoDeCuenta = estadoDeCuenta;
+        if (tipoDeCuenta !== undefined) cuentaBancaria.tipoDeCuenta = tipoDeCuenta;
+
 
         await usuario.save();
         res.json({ message: 'Cuenta bancaria actualizada con éxito', cuentaBancaria });
