@@ -71,6 +71,7 @@ export const getFilterUsersApk = async (req, res) => {
         userID: users[0].id,
         ...formData,
         applications: resultAplication,
+        cuentasBancarias: users[0].cuentasBancarias,
       }
       return res.json(dataRes);
       ;
@@ -114,6 +115,7 @@ export const getFilterUsersApkRefresh = async (req, res) => {
         userID: users[0].id,
         ...formData,
         applications: resultAplication,
+        cuentasBancarias: users[0].cuentasBancarias,
       }
       return res.json(dataRes);
       ;
@@ -159,7 +161,8 @@ export const getFilterUsersApkFromWeb = async (req, res) => {
 
       const dataRes = {
         userID: users[0].id,
-        ...formData
+        ...formData,
+        cuentasBancarias: users[0].cuentasBancarias,
       }
       return res.json(dataRes);
       ;
