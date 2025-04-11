@@ -67,7 +67,8 @@ export const eliminarCuentaBancaria = async (req, res) => {
         );
 
         await usuario.save();
-        res.json({ message: 'Cuenta bancaria eliminada con éxito', cuentasBancarias: usuario.cuentasBancarias });
+
+        res.json({ message: 'Cuenta bancaria eliminada con éxito', usuario });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al eliminar la cuenta bancaria' });

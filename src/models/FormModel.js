@@ -9,7 +9,7 @@ const ImageSchema = new mongoose.Schema({
 });
 
 const CuentasBancariasSchema = new mongoose.Schema({
-  titular: String,
+  titular: Boolean,
   nombreBanco: String,
   claveBanco: String,
   numeroDeCuenta: String,
