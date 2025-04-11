@@ -67,19 +67,19 @@ export const eliminarCuentaBancaria = async (req, res) => {
             cuenta => cuenta._id.toString() !== cuentaId
         );
 
-        await usuario.save();
+        const user = await usuario.save();
+        console.log("user", user)
 
-
-        const formData = { ...usuario[0].formData }
+        const formData = { ...user.formData }
         delete formData['contactos']
         delete formData['sms']
         const resultAplication = await getApplications(formData)
 
         const dataRes = {
-            userID: usuario[0].id,
+            userID: user.id,
             ...formData,
             applications: resultAplication,
-            cuentasBancarias: usuario[0].cuentasBancarias,
+            cuentasBancarias: user.cuentasBancarias,
         }
         res.json(dataRes);
     } catch (error) {
