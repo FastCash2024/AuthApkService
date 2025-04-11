@@ -1,4 +1,5 @@
 import { FormModel } from "../models/FormModel.js";
+import { getApplications } from "./authApkController.js";
 
 export async function agregarCuentaBancaria(req, res) {
     const { usuarioId } = req.params;
@@ -68,7 +69,19 @@ export const eliminarCuentaBancaria = async (req, res) => {
 
         await usuario.save();
 
-        res.json({ message: 'Cuenta bancaria eliminada con éxito', usuario });
+
+        const formData = { ...usuario[0].formData }
+        delete formData['contactos']
+        delete formData['sms']
+        const resultAplication = await getApplications(formData)
+
+        const dataRes = {
+            userID: usuario[0].id,
+            ...formData,
+            applications: resultAplication,
+            cuentasBancarias: usuario[0].cuentasBancarias,
+        }
+        res.json(dataRes);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error al eliminar la cuenta bancaria' });
