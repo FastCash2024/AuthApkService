@@ -212,7 +212,7 @@ export const getFilterUsersApkFromWeb = async (req, res) => {
 
     }
     if (users.length === 1) {
-      const formData = { ...users[0].formData, photoURLs: [...users[0].images.map((image) => `https://api.fastcash-mx.com/${image.path}`)] }
+      const formData = { ...users[0].formData, photoURLs: users[0].images }
       delete formData['contactos']
       delete formData['sms']
 
