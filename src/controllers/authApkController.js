@@ -118,7 +118,21 @@ export const updateUserAPK = async (req, res) => {
       return res.status(404).json({ message: "Formulario no encontrado" });
     }
 
-    res.json({ message: "Formulario actualizado correctamente", data: updated });
+
+    const formData = { ...updated.formData }
+    delete formData['contactos']
+    delete formData['sms']
+    const resultAplication = await getApplications(formData)
+    console.log("resultado aplicacion: ", resultAplication);
+    const dataRes = {
+      userID: updated.id,
+      ...formData,
+      applications: resultAplication,
+      cuentasBancarias: updated.cuentasBancarias,
+    }
+    return res.json(dataRes);
+
+    // res.json({ message: "Formulario actualizado correctamente", data: updated });
   } catch (error) {
     console.error("Error al actualizar:", error);
     res.status(500).json({ message: "Error interno al actualizar el formulario" });
