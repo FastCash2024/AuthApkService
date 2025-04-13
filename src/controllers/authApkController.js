@@ -82,6 +82,50 @@ export const getFilterUsersApk = async (req, res) => {
   }
 };
 
+
+export const updateUserAPK = async (req, res) => {
+  const { userApkID } = req.params;
+  const body = req.body;
+
+  if (!body || typeof body !== "object") {
+    return res.status(400).json({ message: "Datos inválidos o no proporcionados" });
+  }
+
+  const camposPermitidos = [
+    "apellidos", "nombres", "contacto", "dni", "provinciaCiudad", "estadoCivil",
+    "trabajo", "prestamoEnLinea", "prestamosPendientes", "ingreso", "nivelDePrestamo",
+    "nombreBanco", "claveBanco", "tipoCuenta", "numeroDeTarjetaBancari", "fechaNacimiento",
+    "sexo", "nivelEducativo", "contactNameAmigo", "contactNameFamiliar",
+    "phoneNumberAmigo", "phoneNumberFamiliar"
+  ];
+
+  const updateFields = {};
+
+  camposPermitidos.forEach((campo) => {
+    if (body[campo] !== undefined) {
+      updateFields[`formData.${campo}`] = body[campo]; // <-- NOTACIÓN ANIDADA
+    }
+  });
+
+  try {
+    const updated = await FormModel.findByIdAndUpdate(
+      userApkID,
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Formulario no encontrado" });
+    }
+
+    res.json({ message: "Formulario actualizado correctamente", data: updated });
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    res.status(500).json({ message: "Error interno al actualizar el formulario" });
+  }
+};
+
+
 // Obtener todos los usuarios cuando haga un refresh en apk
 export const getFilterUsersApkRefresh = async (req, res) => {
   console.log(req)

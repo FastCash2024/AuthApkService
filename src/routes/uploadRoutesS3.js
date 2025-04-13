@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import {handleFileUpload,handleFileUploadMultiples} from '../controllers/uploadControllerS3.js';
-import {getChatsUser, getFilterUsersApk, getFilterUsersApkRefresh, getFilterUsersApkFromWeb} from '../controllers/authApkController.js';
+import {getChatsUser, getFilterUsersApk, getFilterUsersApkRefresh, getFilterUsersApkFromWeb, updateUserAPK} from '../controllers/authApkController.js';
 
 const router = express.Router();
 
@@ -16,8 +16,10 @@ const upload = multer({
 // Rutas de S3
 router.post('/upload', upload.single('file'), handleFileUpload);
 
-//Registers APP
+//Registers APK
 router.post('/register', upload.array('files', 3), handleFileUploadMultiples);  // Permite hasta 10 archivos
+//Update APK
+router.put('/:userApkID', updateUserAPK);
 
 //Login APK
 router.get('/usersApk', getFilterUsersApk);
