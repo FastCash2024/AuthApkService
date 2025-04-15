@@ -58,10 +58,10 @@ export const handleFileUploadMultiples = async (req, res) => {
       cuentasBancarias: [
         {
           titular: true,
-          nombreBanco: body.nombreBanco,
-          claveBanco: body.claveBanco,
-          numeroDeCuenta: body.numeroDeTarjetaBancari,
-          tipoCuenta: body.tipoCuenta,
+          nombreBanco: formData.nombreBanco,
+          claveBanco: formData.claveBanco,
+          numeroDeCuenta: formData.numeroDeTarjetaBancari,
+          tipoCuenta: formData.tipoCuenta,
         }
       ], // Inicializar como un array vacío
     });
