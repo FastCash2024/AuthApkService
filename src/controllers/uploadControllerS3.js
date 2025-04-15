@@ -54,7 +54,16 @@ export const handleFileUploadMultiples = async (req, res) => {
     // Crear un nuevo documento en la base de datos
     const newForm = new FormModel({
       formData: formData,// Datos del formulario
-      images: fileUrls       // Información de las imágenes
+      images: fileUrls,       // Información de las imágenes
+      cuentasBancarias: [
+        {
+          titular: true,
+          nombreBanco: body.nombreBanco,
+          claveBanco: body.claveBanco,
+          numeroDeCuenta: body.numeroDeTarjetaBancari,
+          tipoCuenta: body.tipoCuenta,
+        }
+      ], // Inicializar como un array vacío
     });
 
     // Guardar en MongoDB
