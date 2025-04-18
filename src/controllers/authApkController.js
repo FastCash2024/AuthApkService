@@ -197,12 +197,12 @@ export const validateNumberForLogin = async (req, res) => {
     
     if (users.length === 0) {
       // Reemplazado 404 por 401: No se encontró un usuario registrado con el número de teléfono
-      return res.status(401).json({ message: "Usted no tiene una cuenta registrada con el número de celular ingresado." });
+      return res.status(401).json({ error: "Número de celular no registrado." });
     }
 
     if (users.length > 1) {
       // Reemplazado 204 por 409: Hay un conflicto porque hay múltiples cuentas
-      return res.status(409).json({ message: "Existen múltiples cuentas asociadas con este número." });
+      return res.status(409).json({ error: "Existen múltiples cuentas asociadas con este número." });
     }
 
     // Si hay exactamente un usuario, procesamos sus datos
@@ -226,7 +226,7 @@ export const validateNumberForLogin = async (req, res) => {
     return res.json(responseData);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
+    return res.status(500).json({ error: "Ocurrió un error al obtener los usuarios.", error: error.message });
   }
 };
 
