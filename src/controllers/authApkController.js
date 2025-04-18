@@ -179,8 +179,11 @@ export const validateNumberForLogin = async (req, res) => {
   try {
     const { phoneNumber, code } = req.query;
 
-    if (!phoneNumber || !code) {
-      return res.status(400).json({ error: "El número de teléfono y el código son requeridos." });
+    if (!phoneNumber ) {
+      return res.status(400).json({ error: "El número de celular requerido" });
+    }
+    if (!code) {
+      return res.status(400).json({ error: "El codigo OTP es requerido" });
     }
 
     // Verificar OTP
@@ -202,7 +205,7 @@ export const validateNumberForLogin = async (req, res) => {
 
     if (users.length > 1) {
       // Reemplazado 204 por 409: Hay un conflicto porque hay múltiples cuentas
-      return res.status(409).json({ error: "Existen múltiples cuentas asociadas con este número." });
+      return res.status(409).json({ error: "Error multiples cuentas." });
     }
 
     // Si hay exactamente un usuario, procesamos sus datos
