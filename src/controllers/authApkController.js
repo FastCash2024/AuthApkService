@@ -3,7 +3,7 @@ import { FormModel } from '../models/FormModel.js'; // Asegúrate de usar la rut
 import Application from '../models/ApplicationsCollection.js';
 import VerificationCollection from '../models/VerificationCollection.js';
 import { uploadFileToS3, } from './S3Controller.js';
-import {SmsModel} from '../models/SmsModel.js';
+import {SmsModel} from '../models/smsModel.js';
 
 // Obtener todos los usuarios
 export const getFilterUsers = async (req, res) => {
