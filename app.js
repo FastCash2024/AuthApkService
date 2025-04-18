@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url'; // Asegúrate de importar fileURLToPath
 
 import loginAndSigninRoutes from './src/routes/loginAndSigninRoutes.js';
-import cuentasBancariasRoutes from './src/routes/cuentasBancariasRoutes.js';
+import cuentasBancariasRoutes from './src/routes/CuentasBancariasRoutes.js';
 
 dotenv.config();
 const app = express();
