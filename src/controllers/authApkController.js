@@ -105,7 +105,7 @@ export const registerAfterValidateOTP = async (req, res) => {
     });
 
     if (existingUserByPhone) {
-      return res.status(409).json({ error: "Este número ya está registrado." });
+      return res.status(409).json({ error: "El número de celular ya está registrado." });
     }
 
     // 🔎 Validar que el DNI no esté registrado
@@ -114,7 +114,7 @@ export const registerAfterValidateOTP = async (req, res) => {
     });
 
     if (existingUserByDNI) {
-      return res.status(409).json({ error: "Este DNI ya está registrado." });
+      return res.status(409).json({ error: "El CURP ya está registrado." });
     }
 
     // ☁️ Subir archivos a S3
@@ -163,56 +163,63 @@ export const registerAfterValidateOTP = async (req, res) => {
     });
   }
 };
+
 // Obtener todos los usuarios
 export const validateNumberForLogin = async (req, res) => {
-  console.log(req)
   try {
     const { phoneNumber, code } = req.query;
 
+    if (!phoneNumber || !code) {
+      return res.status(400).json({ error: "El número de teléfono y el código son requeridos." });
+    }
 
+    // Verificar OTP
     const otpResult = await verificarOTP(phoneNumber, code);
     if (!otpResult.success) {
       return res.status(400).json({ error: otpResult.error });
     }
 
-
     // Construcción dinámica del filtro
-    const filter = {};
-    if (phoneNumber) {
-      // Buscar dentro de formData usando la notación de punto
-      filter["formData.contacto"] = { $regex: phoneNumber, $options: "i" }; // Insensible a mayúsculas
-    }
+    const filter = phoneNumber ? { "formData.contacto": { $regex: phoneNumber, $options: "i" } } : {};
+
     // Consulta a MongoDB con filtro dinámico
     const users = await FormModel.find(filter);
-    console.log(phoneNumber)
-    console.log(users)
-    // Respuesta
+    
     if (users.length === 0) {
-      return res.status(404).json({ message: "No se encontraron usuarios que coincidan con el filtro." });
+      // Reemplazado 404 por 401: No se encontró un usuario registrado con el número de teléfono
+      return res.status(401).json({ message: "Usted no tiene una cuenta registrada con el número de celular ingresado." });
     }
+
     if (users.length > 1) {
-      return res.status(204).json({ message: "Many Accounts" });
+      // Reemplazado 204 por 409: Hay un conflicto porque hay múltiples cuentas
+      return res.status(409).json({ message: "Existen múltiples cuentas asociadas con este número." });
     }
-    if (users.length === 1) {
-      const formData = { ...users[0].formData }
-      delete formData['contactos']
-      delete formData['sms']
-      const resultAplication = await getApplications(formData)
-      console.log("resultado aplicacion: ", resultAplication);
-      const dataRes = {
-        userID: users[0].id,
-        ...formData,
-        applications: resultAplication,
-        cuentasBancarias: users[0].cuentasBancarias,
-      }
-      return res.json(dataRes);
-      ;
-    }
-    return res.status(404).json({ message: "non exist" });
+
+    // Si hay exactamente un usuario, procesamos sus datos
+    const user = users[0];
+    const formData = { ...user.formData };
+    delete formData.contactos;
+    delete formData.sms;
+
+    // Obtener aplicaciones asociadas al usuario
+    const resultApplication = await getApplications(formData);
+    console.log("Resultado aplicación: ", resultApplication);
+
+    // Construcción de la respuesta
+    const responseData = {
+      userID: user.id,
+      ...formData,
+      applications: resultApplication,
+      cuentasBancarias: user.cuentasBancarias,
+    };
+
+    return res.json(responseData);
   } catch (error) {
-    res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
+    console.error(error);
+    return res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
   }
 };
+
 
 export const updateUserAPK = async (req, res) => {
   const { userApkID } = req.params;
