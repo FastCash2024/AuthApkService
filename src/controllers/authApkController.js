@@ -36,8 +36,12 @@ export const validateNumberForSignup = async (req, res) => {
   try {
     const { phoneNumber, code } = req.body;
 
-    if (!phoneNumber || !code) {
-      return res.status(400).json({ error: "Faltan parámetros requeridos: phoneNumber o code." });
+    // Verificación de parámetros
+    if (!phoneNumber) {
+      return res.status(400).json({ error: "El número de teléfono es requerido." });
+    }
+    if (!code) {
+      return res.status(400).json({ error: "El código OTP es requerido." });
     }
 
     // Verificación del OTP
@@ -46,23 +50,28 @@ export const validateNumberForSignup = async (req, res) => {
       return res.status(401).json({ error: otpResult.error }); // Unauthorized
     }
 
-    // Buscar el número en la base de datos
+    // Construir el filtro para la búsqueda del número
     const filter = {
       "formData.contacto": { $regex: phoneNumber, $options: "i" },
     };
 
+    // Buscar el número en la base de datos
     const users = await FormModel.find(filter);
 
+    // Si no se encuentran usuarios con ese número
     if (users.length === 0) {
       return res.status(200).json({ message: "Número de celular disponible para registro." });
     }
 
+    // Si ya existe un solo registro con el mismo número
     if (users.length === 1) {
       return res.status(409).json({ error: "Número de celular ya registrado." }); // Conflict
     }
 
-    // Si hay más de un registro con el mismo número
-    return res.status(409).json({ error: "Número de celular registrado múltiples veces." }); // Conflict
+    // Si hay más de un registro con el mismo número (violación de integridad de datos)
+    return res.status(409).json({
+      error: "Número de celular registrado múltiples veces. Verifique los registros.",
+    }); // Conflict
 
   } catch (error) {
     console.error("Error en validateNumberForSignup:", error);
@@ -72,6 +81,7 @@ export const validateNumberForSignup = async (req, res) => {
     });
   }
 };
+
 
 export const registerAfterValidateOTP = async (req, res) => {
   const { body, files } = req;
