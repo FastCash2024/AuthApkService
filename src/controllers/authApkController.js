@@ -1,8 +1,9 @@
 
 import { FormModel } from '../models/FormModel.js'; // Asegúrate de usar la ruta correcta
 import Application from '../models/ApplicationsCollection.js';
-import { verificarOTP } from './uploadControllerS3.js';
 import VerificationCollection from '../models/VerificationCollection.js';
+import { uploadFileToS3, } from './S3Controller.js';
+import {SmsModel} from '../models/SmsModel.js';
 
 // Obtener todos los usuarios
 export const getFilterUsers = async (req, res) => {
@@ -30,20 +31,151 @@ export const getFilterUsers = async (req, res) => {
   }
 };
 
+// Validaddor de número de celular para registro
+export const validateNumberForSignup = async (req, res) => {
+  try {
+    const { phoneNumber, code } = req.body;
+
+    if (!phoneNumber || !code) {
+      return res.status(400).json({ error: "Faltan parámetros requeridos: phoneNumber o code." });
+    }
+
+    // Verificación del OTP
+    const otpResult = await verificarOTP(phoneNumber, code);
+    if (!otpResult.success) {
+      return res.status(401).json({ error: otpResult.error }); // Unauthorized
+    }
+
+    // Buscar el número en la base de datos
+    const filter = {
+      "formData.contacto": { $regex: phoneNumber, $options: "i" },
+    };
+
+    const users = await FormModel.find(filter);
+
+    if (users.length === 0) {
+      return res.status(200).json({ message: "Número de celular disponible para registro." });
+    }
+
+    if (users.length === 1) {
+      return res.status(409).json({ error: "Número de celular ya registrado." }); // Conflict
+    }
+
+    // Si hay más de un registro con el mismo número
+    return res.status(409).json({ error: "Número de celular registrado múltiples veces." }); // Conflict
+
+  } catch (error) {
+    console.error("Error en validateNumberForSignup:", error);
+    return res.status(500).json({
+      error: "Ocurrió un error al validar el número de celular.",
+      details: error.message,
+    });
+  }
+};
+
+export const registerAfterValidateOTP = async (req, res) => {
+  const { body, files } = req;
+
+  try {
+    const { contacto, formData: formDataRaw } = body;
+
+    // ⚠️ Validar campos requeridos
+    if (!contacto) {
+      return res.status(400).json({ error: 'El campo "contacto" es obligatorio.' });
+    }
+
+    // ⚠️ Validar cantidad de archivos
+    if (!files || files.length !== 3) {
+      return res.status(400).json({ error: 'Debe enviar exactamente 3 archivos.' });
+    }
+
+    // 🧾 Parsear formData
+    let formData;
+    try {
+      formData = JSON.parse(formDataRaw);
+    } catch (parseError) {
+      return res.status(400).json({ error: 'El campo "formData" debe ser un JSON válido.' });
+    }
+
+    formData.phoneNumber = contacto;
+
+    // 🔎 Validar que el número no esté registrado
+    const existingUserByPhone = await FormModel.findOne({
+      "formData.contacto": { $regex: contacto, $options: "i" }
+    });
+
+    if (existingUserByPhone) {
+      return res.status(409).json({ error: "Este número ya está registrado." });
+    }
+
+    // 🔎 Validar que el DNI no esté registrado
+    const existingUserByDNI = await FormModel.findOne({
+      "formData.dni": formData.dni
+    });
+
+    if (existingUserByDNI) {
+      return res.status(409).json({ error: "Este DNI ya está registrado." });
+    }
+
+    // ☁️ Subir archivos a S3
+    const fileUrls = [];
+    for (const file of files) {
+      const fileName = file.originalname || `${Date.now()}-${file.originalname}`;
+      const result = await uploadFileToS3(file, fileName);
+      fileUrls.push(result.Location);
+    }
+
+    // 📄 Obtener aplicaciones relacionadas
+    const resultApplications = await getApplications(formData);
+
+    // 🗃 Crear documento en MongoDB
+    const newForm = new FormModel({
+      formData,
+      images: fileUrls,
+      cuentasBancarias: [
+        {
+          titular: true,
+          nombreBanco: formData.nombreBanco,
+          claveBanco: formData.claveBanco,
+          numeroDeCuenta: formData.numeroDeTarjetaBancari,
+          tipoCuenta: formData.tipoCuenta,
+        }
+      ]
+    });
+
+    const savedForm = await newForm.save();
+
+    return res.status(201).json({
+      message: "Registro completado con éxito.",
+      data: {
+        formData,
+        applications: resultApplications,
+        uploadedFiles: fileUrls,
+        formId: savedForm._id
+      }
+    });
+
+  } catch (error) {
+    console.error("Error en registerAfterValidateOTP:", error);
+    return res.status(500).json({
+      error: 'Error interno del servidor',
+      details: error.message
+    });
+  }
+};
 // Obtener todos los usuarios
-export const getFilterUsersApk = async (req, res) => {
+export const validateNumberForLogin = async (req, res) => {
   console.log(req)
   try {
-    const { phoneNumber, codigo } = req.query;
-    console.log(phoneNumber)
-    const otpResult = await verificarOTP(phoneNumber, codigo);
+    const { phoneNumber, code } = req.query;
+
+
+    const otpResult = await verificarOTP(phoneNumber, code);
     if (!otpResult.success) {
       return res.status(400).json({ error: otpResult.error });
     }
-    // // Validación de phoneNumber
-    // if (phoneNumber && typeof phoneNumber !== "string") {
-    //   return res.status(400).json({ message: "El campo phoneNumber debe ser un string válido." });
-    // }
+
+
     // Construcción dinámica del filtro
     const filter = {};
     if (phoneNumber) {
@@ -81,7 +213,6 @@ export const getFilterUsersApk = async (req, res) => {
     res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
   }
 };
-
 
 export const updateUserAPK = async (req, res) => {
   const { userApkID } = req.params;
@@ -138,7 +269,6 @@ export const updateUserAPK = async (req, res) => {
     res.status(500).json({ message: "Error interno al actualizar el formulario" });
   }
 };
-
 
 // Obtener todos los usuarios cuando haga un refresh en apk
 export const getFilterUsersApkRefresh = async (req, res) => {
@@ -230,13 +360,6 @@ export const getFilterUsersApkFromWeb = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Ocurrió un error al obtener los usuarios.", error: error.message });
   }
-};
-// Registro de usuario
-export const signin = async (req, res) => {
-};
-
-// Login de usuario
-export const login = async (req, res) => {
 };
 
 export const getChatsUser = async (req, res) => {
@@ -412,4 +535,27 @@ export const getApplications = async (userData) => {
   } catch (error) {
     throw new Error(`Error al obtener las aplicaciones: ${error.message}`);
   }
+};
+
+export const verificarOTP = async (telefono, codigo) => {
+  if (!telefono || !codigo) {
+    return { success: false, error: "El número de teléfono y el código OTP son requeridos." };
+  }
+
+  const otpRecord = await SmsModel.findOne({ telefono, code: codigo });
+
+  if (!otpRecord) {
+    const phoneExists = await SmsModel.findOne({ telefono });
+    if (phoneExists) {
+      return { success: false, error: "El código es incorrecto." };
+    }
+    return { success: false, error: "El número de teléfono no está registrado o no tiene un OTP válido." };
+  }
+
+  setTimeout(async () => {
+    await SmsModel.deleteOne({ telefono, code: codigo });
+  }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000);
+
+  return { success: true, message: "OTP válido." };
+
 };

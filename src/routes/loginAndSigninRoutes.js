@@ -1,7 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import {handleFileUpload,handleFileUploadMultiples} from '../controllers/uploadControllerS3.js';
-import {getChatsUser, getFilterUsersApk, getFilterUsersApkRefresh, getFilterUsersApkFromWeb, updateUserAPK} from '../controllers/authApkController.js';
+import {getChatsUser, validateNumberForLogin,registerAfterValidateOTP, getFilterUsersApkRefresh, getFilterUsersApkFromWeb, updateUserAPK, validateNumberForSignup} from '../controllers/authApkController.js';
 
 const router = express.Router();
 
@@ -13,16 +12,19 @@ const upload = multer({
   storage: multer.memoryStorage(),  // Almacenamiento en memoria
   limits: { fileSize: 10 * 1024 * 1024 },  // Límite de tamaño de archivo (10MB)
 });
-// Rutas de S3
-router.post('/upload', upload.single('file'), handleFileUpload);
+
+//Verification OTP for Signup  APK
+router.post('/verifyOTPforSignup', validateNumberForSignup); 
 
 //Registers APK
-router.post('/register', upload.array('files', 3), handleFileUploadMultiples);  // Permite hasta 10 archivos
+router.post('/register', upload.array('files', 3), registerAfterValidateOTP);  
+
+//Verificacion de OTP yLogin APK
+router.get('/usersApk', validateNumberForLogin);
+
 //Update APK
 router.put('/:userApkID', updateUserAPK);
 
-//Login APK
-router.get('/usersApk', getFilterUsersApk);
 router.get('/usersApkRefresh', getFilterUsersApkRefresh);
 router.get('/usersApkFromWeb', getFilterUsersApkFromWeb);
 router.get('/usersChat', getChatsUser);
