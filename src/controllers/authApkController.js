@@ -3,7 +3,7 @@ import { FormModel } from '../models/FormModel.js'; // Asegúrate de usar la rut
 import Application from '../models/ApplicationsCollection.js';
 import VerificationCollection from '../models/VerificationCollection.js';
 import { uploadFileToS3, } from './S3Controller.js';
-import {SmsModel} from '../models/smsModel.js';
+import { SmsModel } from '../models/smsModel.js';
 
 // Obtener todos los usuarios
 export const getFilterUsers = async (req, res) => {
@@ -82,40 +82,23 @@ export const validateNumberForSignup = async (req, res) => {
   }
 };
 
-
 export const registerAfterValidateOTP = async (req, res) => {
   const { body, files } = req;
 
   try {
-    const { contacto, formData: formDataRaw } = body;
 
-    // ⚠️ Validar campos requeridos
-    if (!contacto) {
-      return res.status(400).json({ error: 'El campo "contacto" es obligatorio.' });
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
     }
-
-    // ⚠️ Validar cantidad de archivos
     if (!files || files.length !== 3) {
       return res.status(400).json({ error: 'Debe enviar exactamente 3 archivos.' });
     }
 
-    // 🧾 Parsear formData
-    let formData;
-    try {
-      formData = JSON.parse(formDataRaw);
-    } catch (parseError) {
-      return res.status(400).json({ error: 'El campo "formData" debe ser un JSON válido.' });
-    }
+    const formData = await JSON.parse(body.formData)
 
-    formData.phoneNumber = contacto;
-
-    // 🔎 Validar que el número no esté registrado
-    const existingUserByPhone = await FormModel.findOne({
-      "formData.contacto": { $regex: contacto, $options: "i" }
-    });
-
-    if (existingUserByPhone) {
-      return res.status(409).json({ error: "El número de celular ya está registrado." });
+    if (!formData.contacto) {
+      return res.status(400).json({ error: 'El campo "contacto" es obligatorio.' });
     }
 
     // 🔎 Validar que el DNI no esté registrado
@@ -123,25 +106,31 @@ export const registerAfterValidateOTP = async (req, res) => {
       "formData.dni": formData.dni
     });
 
+    const existingUserByPhone = await FormModel.findOne({
+      "formData.contacto": { $regex: formData.contacto, $options: "i" }
+    });
+
     if (existingUserByDNI) {
       return res.status(409).json({ error: "El CURP ya está registrado." });
     }
-
-    // ☁️ Subir archivos a S3
+    if (existingUserByPhone) {
+      return res.status(409).json({ error: "El número de celular ya está registrado." });
+    }
     const fileUrls = [];
-    for (const file of files) {
-      const fileName = file.originalname || `${Date.now()}-${file.originalname}`;
-      const result = await uploadFileToS3(file, fileName);
-      fileUrls.push(result.Location);
+
+    // Subir cada archivo a S3
+    for (let file of req.files) {
+      const fileName = file.originalname;  // Usar el nombre original o generar uno único
+      const result = await uploadFileToS3(file, fileName);  // Subir archivo
+      fileUrls.push(result.Location);  // Guardar la URL del archivo cargado
     }
 
-    // 📄 Obtener aplicaciones relacionadas
     const resultApplications = await getApplications(formData);
 
-    // 🗃 Crear documento en MongoDB
+    // Crear un nuevo documento en la base de datos
     const newForm = new FormModel({
-      formData,
-      images: fileUrls,
+      formData: formData,// Datos del formulario
+      images: fileUrls,       // Información de las imágenes
       cuentasBancarias: [
         {
           titular: true,
@@ -150,36 +139,28 @@ export const registerAfterValidateOTP = async (req, res) => {
           numeroDeCuenta: formData.numeroDeTarjetaBancari,
           tipoCuenta: formData.tipoCuenta,
         }
-      ]
+      ], // Inicializar como un array vacío
     });
 
-    const savedForm = await newForm.save();
-
-    return res.status(201).json({
-      message: "Registro completado con éxito.",
-      data: {
-        formData,
-        applications: resultApplications,
-        uploadedFiles: fileUrls,
-        formId: savedForm._id
-      }
+    await newForm.save();
+    // Responder con las URLs de los archivos cargados
+    return res.status(200).json({
+      ...formData, applications: resultApplications
     });
-
   } catch (error) {
-    console.error("Error en registerAfterValidateOTP:", error);
-    return res.status(500).json({
-      error: 'Error interno del servidor',
-      details: error.message
-    });
+    console.log(error)
+    return res.status(500).json({ "Error": error, });
   }
 };
+
+
 
 // Obtener todos los usuarios
 export const validateNumberForLogin = async (req, res) => {
   try {
     const { phoneNumber, code } = req.query;
 
-    if (!phoneNumber ) {
+    if (!phoneNumber) {
       return res.status(400).json({ error: "El número de celular requerido" });
     }
     if (!code) {
@@ -197,7 +178,7 @@ export const validateNumberForLogin = async (req, res) => {
 
     // Consulta a MongoDB con filtro dinámico
     const users = await FormModel.find(filter);
-    
+
     if (users.length === 0) {
       // Reemplazado 404 por 401: No se encontró un usuario registrado con el número de teléfono
       return res.status(401).json({ error: "Número de celular no registrado." });
